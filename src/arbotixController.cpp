@@ -186,7 +186,7 @@ void arbotixController::sendServoAngle(int servoId, int angle, int speed)
 
     if (angle<=0 || angle >1024)
     {
-        ofLogError() << "Error : angle not correct : " << angle;
+        //ofLogError() << "Error : angle not correct : " << angle;
     }
     else if (servoId<1 || servoId >5)
     {
@@ -195,9 +195,37 @@ void arbotixController::sendServoAngle(int servoId, int angle, int speed)
     else
     {
         //printf("set servo angle : ID - %i - Angle %i - Speed %i\n",servoId,angle,speed);
-        arbotix->sendDynamixelMove(servoId, angle, speed);
+        //arbotix->sendDynamixelMove(servoId, angle, speed);
+        arbotix->sendDynamixelSynchMoveAdd(servoId, angle, speed);
     }
 
+}
+
+int arbotixController::getServoTemp(const unsigned int &servoId)
+{
+    getDynamixelRegister(servoId,ax12TempRegister,2);
+    std::map <int,int>::iterator it;
+    it=fServosTemps.find(servoId);
+    if (it!=fServosTemps.end())
+    {
+        return fServosTemps[servoId];
+    }
+}
+
+int arbotixController::getServoPos(const unsigned int &servoId)
+{
+    getDynamixelRegister(servoId,ax12PosRegister,2);
+    std::map <int,int>::iterator it;
+    it=fServosPos.find(servoId);
+    if (it!=fServosPos.end())
+    {
+        return fServosPos[servoId];
+    }
+}
+
+void arbotixController::moveServos()
+{
+    arbotix->sendDynamixelSynchMoveExecute();
 }
 
 void arbotixController::disconnect()
@@ -206,6 +234,22 @@ void arbotixController::disconnect()
    xInitialized = false;
 
 }
+
+void arbotixController::enableServo(const unsigned int &servoId)
+{
+
+}
+
+void arbotixController::disableServo(const unsigned int &servoId)
+{
+    printf("abotix : disable servo %i\n",servoId);
+    //arbotix->sendDynamixelStop(servoId);
+    arbotix->sendDynamixelSetRegister(servoId, 0x18, 2, 0);
+    //bool ret = arbotix->waitForSysExMessage(SYSEX_DYNAMIXEL_SET_REGISTER, 2);
+    //printf("ret : %i\n",ret);
+
+}
+
 
 void arbotixController::update()
 {
@@ -385,11 +429,6 @@ void arbotixController::dynamixelRecieved(const int & servo)
 //#endif
 }
 
-int arbotixController::getServoTemp(const unsigned int &servo)
-{
-    //return arbotix->_dynamixelServos[servo]._temperature;
-
-}
 
 void arbotixController::dynamixelTransmitError(const int & cmd, const int & servoNum) {
 
@@ -411,9 +450,20 @@ void arbotixController::setDynamixelRegister(const unsigned char &servo, const u
 
 void arbotixController::dynamixelGetRegister(const unsigned int &servo, const unsigned int &reg, const unsigned int &value) {
 
-    if (reg==43)
+    if (reg==ax12TempRegister)
     {
-        ofLogNotice() << "Température Servo " << servo << " : " << value <<  "°C";
+        fServosTemps[servo]=value;
+        //ofLogNotice() << "Température Servo " << servo << " : " << value <<  "°C";
+    }
+    if (reg==ax12PosRegister)
+    {
+        fServosPos[servo]=value;
+        //ofLogNotice() << "Température Servo " << servo << " : " << value <<  "°C";
+    }
+    if (reg==0x18)
+    {
+        //fServosPos[servo]=value;
+        ofLogNotice() << "Servo " << servo << " : Torque Enbled : " << value ;
     }
     //std::cout << "Get Register Servo: " << servo << ", reg: " << reg << ", value: " << value << "\r\n";
 }

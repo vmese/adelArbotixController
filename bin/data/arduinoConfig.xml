@@ -16,34 +16,34 @@
         <name>servo2</name>
         <id>2</id>
 	<pinNb>10</pinNb>
-        <min>700</min>
-        <max>825</max>
-        <initialPos>825</initialPos>
+        <min>382</min>
+        <max>477</max>
+        <initialPos>477</initialPos>
 </servo>
 
 <servo>
         <name>servo3</name>
         <id>3</id>
 	<pinNb>10</pinNb>
-        <min>530</min>
-        <max>820</max>
-        <initialPos>530</initialPos>
+        <min>540</min>
+        <max>757</max>
+        <initialPos>540</initialPos>
 </servo>
 
 <servo>
         <name>servo4</name>
         <id>4</id>
 	<pinNb>10</pinNb>
-	<min>370</min>
-        <max>500</max>
-	<initialPos>371</initialPos>
+	<min>380</min>
+        <max>530</max>
+	<initialPos>380</initialPos>
 </servo>
 
 <servo>
         <name>servo5</name>
         <id>5</id>
 	<pinNb>10</pinNb>
-        <min>300</min>
-        <max>700</max>
+        <min>380</min>
+        <max>620</max>
         <initialPos>500</initialPos>
 </servo>

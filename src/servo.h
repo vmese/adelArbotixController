@@ -20,6 +20,10 @@ public:
     void setSpeed(const int &speed);
     void setName(const std::string &name);
     int  getId();
+    int getTemp();
+    int getPos();
+    void enable();
+    void disable();
     std::string getName();
 
 private:
@@ -31,6 +35,7 @@ private:
     std::string fName;
     int fSpeed;
     bool fIsInitialized;
+    bool fIsEnabled;
 
     // OSSIA parameters
     ossia::ParameterGroup fOssiaServoControl;

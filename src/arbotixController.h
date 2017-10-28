@@ -11,6 +11,8 @@
 #define TC_ID 15
 #define CF_ID 1
 #define GRIP_ID 1
+#define ax12TempRegister 0x2B
+#define ax12PosRegister 0x24
 
 class arbotixController
 {
@@ -34,7 +36,6 @@ protected:
     void dynamixelTransmitError(const int & cmd, const int & servoNum);
     void dynamixelGetRegister(const unsigned int &servo, const unsigned int &reg, const unsigned int &value);
 
-
 #ifdef INCLUDE_TIMING
     unsigned long long m_lStartTick;
     unsigned long long m_lEndTick;
@@ -57,9 +58,13 @@ public:
     void sendServoAngle(int servoId,int angle, int speed);
     void attachServo(const uint &servoId);
     //void resetServo(const uint &servoId);
-    int getServoTemp(const unsigned int &servo);
+    int getServoTemp(const unsigned int &servoId);
+    int getServoPos(const unsigned int &servoId);
+    void enableServo(const unsigned int &servoId);
+    void disableServo(const unsigned int &servoId);
     void getDynamixelRegister(const unsigned char &servo, const unsigned char &reg, const unsigned char &length);
     void setDynamixelRegister(const unsigned char &servo, const unsigned char &reg, const unsigned char &length, const unsigned int &value);
+    void moveServos();
 
 private :
 
@@ -71,6 +76,8 @@ private :
     ofEvent <const int> arduinoInitiliazedEvent;
 
     boost::mutex fMutex;
+    std::map<int,int> fServosTemps;
+    std::map<int,int> fServosPos;
 
 
 };

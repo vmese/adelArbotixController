@@ -1,9 +1,28 @@
 #include "servo.h"
 
 servo::servo():
-fIsInitialized(false)
+fIsInitialized(false),
+fIsEnabled(false)
 {
 
+}
+
+void servo::enable()
+{
+    if (!fIsEnabled)
+    {
+        fController->enableServo(fId);
+        fIsEnabled = True;
+    }
+}
+
+void servo::disable()
+{
+//    if (fIsEnabled)
+//    {
+        fController->disableServo(fId);
+        fIsEnabled = false;
+//    }
 }
 
 void servo::setup(int min, int max)
@@ -21,6 +40,18 @@ void servo::setOssiaParams(ossia::ParameterGroup ossiaParentNode, string name)
     fOssiaServoControl.setup(ossiaParentNode, name);
     fOssiaMinMaxControl.setup(fOssiaServoControl, "MIN/MAX");
     //_gl.setup(_joint, "my3d");
+}
+
+int servo::getTemp()
+{
+    int temp = fController->getServoTemp(fId);
+    return temp;
+}
+
+int servo::getPos()
+{
+    int pos = fController->getServoPos(fId);
+    return pos;
 }
 
 void servo::update()

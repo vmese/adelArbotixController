@@ -33,6 +33,7 @@ class ofApp : public ofBaseApp{
 
         void setupArduino(const int & version);
         void loadConfiguration(const std::string &fileName);
+        void enableMotors(bool state);
 
         arbotixController *arduino;
         ofArduino ard;
@@ -77,6 +78,8 @@ class ofApp : public ofBaseApp{
         float fInitialPosServo4;
         float fInitialPosServo5;
 
+        bool fMotorsEnabled;
+
         bool fTrackHead;
 
         //vector<boost::shared_ptr<servo> > fServosList;
@@ -87,6 +90,18 @@ class ofApp : public ofBaseApp{
         servo servo4;
         servo servo5;
 
+        int fServo1Temp;
+        int fServo2Temp;
+        int fServo3Temp;
+        int fServo4Temp;
+        int fServo5Temp;
+
         std::vector <servo*> fServosList;
+
+        ofPoint fCircleButton;
+        bool fbCircleButtonClicked;
+        int fCircleButtonRadius;
+
+        ofTrueTypeFont	verdana14Font;
 
 };
