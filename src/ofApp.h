@@ -32,10 +32,13 @@ class ofApp : public ofBaseApp{
         void goToRest();
 
         void setupArduino(const int & version);
-        void loadConfiguration(const std::string &fileName);
+        void loadArbotixConfiguration(const std::string &fileName);
+        void loadArduinoConfiguration(const std::string &fileName);
         void enableMotors(bool state);
 
-        arbotixController *arduino;
+        void turnOnLed(const int &pinNb);
+
+        arbotixController *arbotix;
         ofArduino ard;
         ofxPanel _gui;
 
@@ -66,8 +69,11 @@ class ofApp : public ofBaseApp{
         std::vector<int> fServosMax;
         std::vector<int> fServosInitialPos;
 
-        std::string fPortName;
-        int fRate;
+        std::string fArbotixPortName;
+        int fArbotixRate;
+
+        std::string fArduinoPortName;
+        int fArduinoRate;
 
         float fmeanHeadPositionX;
         float fmeanHeadPositionY;

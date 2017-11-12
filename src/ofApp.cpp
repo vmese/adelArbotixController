@@ -4,7 +4,7 @@
 void ofApp::setup(){
 
     ofSetVerticalSync(true);
-    ofSetFrameRate(20);
+    ofSetFrameRate(30);
     //ofBackground(0,0,0); // black
     ofBackground(255,255,255); // white
 
@@ -20,44 +20,46 @@ void ofApp::setup(){
     _gui.minimizeAll();
 
     //setup arbotix
-    fPortName ="";
-    fRate=0;
+    fArbotixPortName ="";
+    fArbotixRate=0;
+    fArduinoPortName ="";
+    fArduinoRate=0;
     fTrackHead = false;
     fMotorsEnabled = false;
 
-    arduino = new arbotixController();
-    loadConfiguration("arduinoConfig.xml");
+    arbotix = new arbotixController();
+    loadArbotixConfiguration("arbotixConfig.xml");
 
 
     for (int i=0;i<kNbOfServos;i++)
     {
-        //arduino->attachServo(i);
+        //arbotix->attachServo(i);
     }
 
     printf("setup servos % i %i",fServosNames.size(),fServosIds.size());
 
 
-    servo1.setController(arduino);
+    servo1.setController(arbotix);
     servo1.setName("servo1");
     servo1.setId(1);
-    servo1.setSpeed(250);
+    servo1.setSpeed(256); // 256
 
-    servo2.setController(arduino);
+    servo2.setController(arbotix);
     servo2.setName("servo2");
     servo2.setId(2);
-    servo2.setSpeed(50);
+    servo2.setSpeed(50); //50
 
-    servo3.setController(arduino);
+    servo3.setController(arbotix);
     servo3.setName("servo3");
     servo3.setId(3);
-    servo3.setSpeed(85);
+    servo3.setSpeed(85); //85
 
-    servo4.setController(arduino);
+    servo4.setController(arbotix);
     servo4.setName("servo4");
     servo4.setId(4);
     servo4.setSpeed(128);
 
-    servo5.setController(arduino);
+    servo5.setController(arbotix);
     servo5.setName("servo5");
     servo5.setId(5);
     servo5.setSpeed(128);
@@ -118,7 +120,7 @@ void ofApp::setup(){
     //ofSetLogLevel(OF_LOG_VERBOSE);
 
 
-    arduino->connectController(fPortName,fRate);
+    arbotix->connectController(fArbotixPortName,fArbotixRate);
 
     _gui.add (fOssia.get_root_node());
 }
@@ -146,6 +148,7 @@ void ofApp::update(){
     // check head position;
     if (fTrackHead==true)
     {
+        //usleep(500000);
 
         //take mean of head positions
     //    int sumValX = 0;
@@ -167,6 +170,9 @@ void ofApp::update(){
         fmeanHeadPositionX = ofMap(1024-fOssiaHeadPositionX,0,1024,0.,1.);
         fmeanHeadPositionY = ofMap(768-fOssiaHeadPositionY,0,768,0.,1.);
 
+//        fmeanHeadPositionX = ofMap(fOssiaHeadPositionX,0,1024,0.,1.);
+//        fmeanHeadPositionY = ofMap(768-fOssiaHeadPositionY,0,768,0.,1.);
+
 
         fOssiaAngleServo4.set(fmeanHeadPositionY);
         fOssiaAngleServo5.set(fmeanHeadPositionX);
@@ -179,16 +185,19 @@ void ofApp::update(){
 
     if (fMotorsEnabled==false)
     {
+        int posServo1 = servo1.getPos();
         int posServo2 = servo2.getPos();
         int posServo3 = servo3.getPos();
         int posServo4 = servo4.getPos();
         int posServo5 = servo5.getPos();
 
+        float pos1 = ofMap(posServo1, fServosMins[0], fServosMax[0],0.,1.);
         float pos2 = ofMap(posServo2, fServosMins[1], fServosMax[1],0.,1.);
         float pos3 = ofMap(posServo3, fServosMins[2], fServosMax[2],0.,1.);
         float pos4 = ofMap(posServo4, fServosMins[3], fServosMax[3],0.,1.);
         float pos5 = ofMap(posServo5, fServosMins[4], fServosMax[4],0.,1.);
 
+        fOssiaAngleServo1.set(pos1);
         fOssiaAngleServo2.set(pos2);
         fOssiaAngleServo3.set(pos3);
         fOssiaAngleServo4.set(pos4);
@@ -207,26 +216,27 @@ void ofApp::update(){
 
     //servo2.setAngle(fOssiaAngleServo2);
 
-    //Rq : need to be called after arduino->connect
-    arduino->update();
+    //Rq : need to be called after arbotix->connect
+    arbotix->update();
 
     //update servos
-    if (arduino->isInitialized() && fMotorsEnabled) {
+    if (arbotix->isInitialized() && fMotorsEnabled) {
+         servo1.setAngle(fOssiaAngleServo1);
          servo2.setAngle(fOssiaAngleServo2);
          servo3.setAngle(fOssiaAngleServo3);
          servo4.setAngle(fOssiaAngleServo4);
          servo5.setAngle(fOssiaAngleServo5);
-//        servo1.update();
+        servo1.update();
         servo2.update();
         servo3.update();
         servo4.update();
         servo5.update();
-        arduino->moveServos();
+        arbotix->moveServos();
      }
 
 
     // check servos parameters
-    //int tempServo3 = arduino->getServoTemp(3);
+    //int tempServo3 = arbotix->getServoTemp(3);
     //printf ("temp servo 3 :%i\n",tempServo3);
 
     //bool ret = arbotix->waitForSysExMessage(SYSEX_DYNAMIXEL_GET_REGISTER, 2);
@@ -237,7 +247,7 @@ void ofApp::update(){
      if (elapsedTime>=2000)
      {
          // read a first value, otherwise temp is false in second reading (0x2B)
-        arduino->getDynamixelRegister(3,0x24,2);
+        arbotix->getDynamixelRegister(3,0x24,2);
 
         fServo2Temp = servo2.getTemp();
         fServo3Temp = servo3.getTemp();
@@ -247,8 +257,8 @@ void ofApp::update(){
         ofResetElapsedTimeCounter() ;
      }
 
-    //arduino->getDynamixelRegister(4,0x2B,2);
-    //arduino->getDynamixelRegister(5,0x2B,2);
+    //arbotix->getDynamixelRegister(4,0x2B,2);
+    //arbotix->getDynamixelRegister(5,0x2B,2);
 
     //usleep(100000);
     //ofResetElapsedTimeCounter() ;
@@ -261,8 +271,9 @@ void ofApp::standUp()
      fOssiaAngleServo3.set(1.0);
 //     int timeSleepS = 1;
 //     usleep(timeSleepS*1000000);
-     fOssiaAngleServo2.set(0.0);
-     fOssiaAngleServo4.set(0.0);
+     fOssiaAngleServo2.set(1.0);
+     fOssiaAngleServo4.set(0.8);
+     fOssiaAngleServo5.set(0.5);
 
 
 }
@@ -273,7 +284,7 @@ void ofApp::goToRest()
     fOssiaAngleServo3.set(fInitialPosServo3);
     fOssiaAngleServo2.set(fInitialPosServo2);
     fOssiaAngleServo4.set(fInitialPosServo4);
-    //fOssiaAngleServo5.set(fInitialPosServo5);
+    fOssiaAngleServo5.set(fInitialPosServo5);
     fTrackHead = false;
 
 }
@@ -326,7 +337,17 @@ void ofApp::draw(){
  }
  verdana14Font.drawString("Temp Servo 3 :" + ofToString(fServo3Temp) + "°C",ofGetWindowWidth()- fCircleButtonRadius - 200,200);
 
+
+ ofDrawBitmapString(ofToString((int) ofGetFrameRate()), ofGetWidth() - 20, ofGetHeight() - 10);
+ ofDrawBitmapStringHighlight(
+         string() +
+         "z - repose-toi\n" +
+         "s - leve toi\n" +
+         "a - asservissement moteurs\n" +
+         "t - suivi visage\n"
+         ,ofGetWindowWidth()- fCircleButtonRadius - 200, 250);
 }
+
 
 void ofApp::enableMotors(bool state)
 {
@@ -340,6 +361,7 @@ void ofApp::enableMotors(bool state)
         servo2.disable();
         servo4.disable();
         servo5.disable();
+        servo1.disable();
         fMotorsEnabled = false;
     }
 }
@@ -381,7 +403,7 @@ void ofApp::keyPressed(int key){
         break;
 
     case 'l' :
-        arduino->setDynamixelRegister(4,0x19,2,1);
+        //arbotix->setDynamixelRegister(4,0x19,2,1);
         break;
 
 
@@ -448,11 +470,11 @@ void ofApp::dragEvent(ofDragInfo dragInfo){
 void ofApp::exit()
 {
     ofLogNotice() << "Exit app";
-    arduino->disconnect();
+    arbotix->disconnect();
 }
 
 
-void ofApp::loadConfiguration(const std::string &fileName)
+void ofApp::loadArbotixConfiguration(const std::string &fileName)
 {
     std::string message;
     if( fXMLReader.loadFile(fileName) ){
@@ -473,8 +495,8 @@ void ofApp::loadConfiguration(const std::string &fileName)
     }
     else
     {
-        fPortName = portName ;
-        fRate = rate;
+        fArbotixPortName = portName ;
+        fArbotixRate = rate;
     }
 
     // find servos names
@@ -513,5 +535,31 @@ void ofApp::loadConfiguration(const std::string &fileName)
               fXMLReader.popTag();
          }
 
+    }
+}
+
+void ofApp::loadArduinoConfiguration(const std::string &fileName)
+{
+    std::string message;
+    if( fXMLReader.loadFile(fileName) ){
+        message = fileName + " loaded!";
+        ofLogNotice() << message;
+    }else{
+        message = "unable to load " + fileName + " - check data/ folder";
+        ofLogError() << message;
+    }
+
+    // find port name and baudrate
+    std::string portName = fXMLReader.getValue("port::name", "");
+    int rate = fXMLReader.getValue("port::rate", 0);
+
+    if (portName == "" || rate == 0)
+    {
+        ofLogError() << "name of the port and baud rate not find in xml";
+    }
+    else
+    {
+        fArbotixPortName = portName ;
+        fArbotixRate = rate;
     }
 }
